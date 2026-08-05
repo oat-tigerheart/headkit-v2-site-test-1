@@ -1,0 +1,168 @@
+@import "tailwindcss";
+@plugin "@tailwindcss/typography";
+@plugin "tailwindcss-animate";
+
+:root {
+  --background: #ffffff;
+  --foreground: #171717;
+  --color-background: #ffffff;
+  --color-text: #171717;
+  --radius: 0.5rem;
+  --radius-button: 0.375rem;
+  --font-heading: var(--font-slot-urbanist, var(--font-urbanist));
+  --font-subheading: var(--font-slot-urbanist, var(--font-urbanist));
+  --font-body: var(--font-slot-urbanist, var(--font-urbanist));
+}
+
+/*
+ * Brand tokens use plain `@theme` (not `inline`) so utilities reference
+ * `var(--color-*)` and layout.tsx's runtime `:root` overrides take effect.
+ * `@theme inline` would bake the default hex into hover/opacity classes
+ * (e.g. hover:bg-primary/70, hover:stroke-purple-500), leaving #7f54b3
+ * visible after branding is applied.
+ *
+ * purple-500 is the accent used for icon/link/swatch hovers and badges —
+ * it tracks --color-primary so tenant branding covers those surfaces too.
+ * purple-800 tracks primary for headings/links when branded; purple-900
+ * tracks body text colour.
+ */
+@theme {
+  --color-primary: #7f54b3;
+  --color-secondary: #000000;
+  --color-primary-text: #ffffff;
+  /* Page/surface background — theme colour so md:text-brand-bg /
+     bg-brand-bg/85 generate with responsive + opacity variants.
+     References runtime --background (layout.tsx), not --color-background,
+     so the token resolves even before @theme inline aliases apply. */
+  --color-brand-bg: var(--background);
+  --color-purple-500: var(--color-primary);
+  /* Headings/links that still use purple-800 track branding primary */
+  --color-purple-800: var(--color-primary);
+  /* Remaining purple scale tracks primary so no default Woo purple leaks through */
+  --color-purple-50: color-mix(in srgb, var(--color-primary) 8%, white);
+  --color-purple-100: color-mix(in srgb, var(--color-primary) 14%, white);
+  --color-purple-200: color-mix(in srgb, var(--color-primary) 25%, white);
+  --color-purple-300: color-mix(in srgb, var(--color-primary) 40%, white);
+  --color-purple-400: color-mix(in srgb, var(--color-primary) 65%, white);
+  --color-purple-700: color-mix(in srgb, var(--color-primary) 85%, black);
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-body);
+
+  /* Purple neutrals – remapped via @theme / layout when branding sets primary */
+  --color-purple-900: #0b050f;
+
+  /* Pink – sale, CTA hover, destructive */
+  --color-pink-500: #ed4395;
+  /* Darker brand pink for TEXT/white-on-bg use: pink-500 is only 3.6:1
+     against white (fails WCAG AA 4.5:1); pink-600 is 4.9:1. */
+  --color-pink-600: #d6187b;
+  --color-pink-800: #a81059;
+
+  /* Lime – accent sections */
+  --color-lime-400: #dbfe87;
+  --color-lime-800: #80b602;
+  /* Text-safe lime: lime-800 is 2.4:1 on white (fails AA); lime-900 is
+     5.4:1 for text like the in-stock availability label. */
+  --color-lime-900: #527502;
+
+  /* Gray – borders, muted text, surfaces */
+  --color-gray-50: #fafaf9;
+  --color-gray-100: #f5f5f4;
+  --color-gray-200: #ececea;
+  --color-gray-500: #c5c5bf;
+  --color-gray-600: #a8a89f;
+  --color-gray-700: #76766b;
+  --color-gray-800: #56564e;
+  --color-gray-900: #171717;
+
+  /* All radius utilities track branding --radius (set in layout.tsx).
+     Without 2xl/3xl aliases, hero/cards using rounded-2xl kept Tailwind’s
+     fixed 1rem and ignored soft/round/square cornerStyle. */
+  --radius-sm: calc(var(--radius) * 0.5);
+  --radius-md: var(--radius);
+  --radius-lg: calc(var(--radius) * 1.25);
+  --radius-xl: calc(var(--radius) * 1.5);
+  --radius-2xl: calc(var(--radius) * 2);
+  --radius-3xl: calc(var(--radius) * 2.5);
+  --radius-4xl: calc(var(--radius) * 3);
+}
+
+@layer base {
+  *,
+  ::after,
+  ::before,
+  ::backdrop,
+  ::file-selector-button {
+    border-color: var(--color-gray-200, currentcolor);
+  }
+
+  body {
+    background-color: var(--color-background, var(--background));
+    color: var(--color-text, var(--foreground));
+    font-family: var(--font-body), ui-sans-serif, system-ui, sans-serif;
+  }
+
+  h1,
+  h2 {
+    font-family: var(--font-heading), ui-sans-serif, system-ui, sans-serif;
+    color: var(--color-primary);
+  }
+
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-family: var(--font-subheading), ui-sans-serif, system-ui, sans-serif;
+    color: var(--color-primary);
+  }
+
+  /* Explicit utility so components can opt in without fighting prose resets */
+  .heading-primary {
+    color: var(--color-primary);
+  }
+
+  /*
+   * Tailwind Typography paints headings via --tw-prose-headings (gray by
+   * default), which beats the base h1–h6 rules above. Point it at branding
+   * primary so editorial/About/FAQ prose matches storefront headings.
+   */
+  .prose {
+    --tw-prose-headings: var(--color-primary);
+  }
+
+  a {
+    color: var(--color-primary);
+  }
+}
+
+@layer utilities {
+  .bg-primary {
+    background-color: var(--color-primary);
+    color: var(--color-primary-text);
+  }
+  .text-primary {
+    color: var(--color-primary);
+  }
+  .text-on-primary {
+    color: var(--color-primary-text);
+  }
+  /* brand-bg text/bg utilities come from @theme --color-brand-bg only —
+     manual @layer utilities do not get md: / opacity variants, which broke
+     hero overlay titles (md:text-brand-bg never applied on desktop). */
+  .border-primary {
+    border-color: var(--color-primary);
+  }
+  .rounded-brand {
+    border-radius: var(--radius);
+  }
+  .rounded-brand-button {
+    border-radius: var(--radius-button);
+  }
+  .font-body {
+    font-family: var(--font-body), ui-sans-serif, system-ui, sans-serif;
+  }
+}
